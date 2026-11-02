@@ -1,34 +1,35 @@
-{ lib
-, appimageTools
-, fetchurl
-, symlinkJoin
-, makeWrapper
-, stdenv
-, makeDesktopItem
-, jdk8
-, jdk17
-, jdk21
-, jdk25
-, libGL
-, vulkan-loader
-, glfw3-minecraft
-, openal
-, alsa-lib
-, libpulseaudio
-, pipewire
-, udev
-, libx11
-, libxcursor
-, libxext
-, libxrandr
-, libxxf86vm
-, xrandr
-, pciutils
+{
+  lib,
+  appimageTools,
+  fetchurl,
+  symlinkJoin,
+  makeWrapper,
+  stdenv,
+  makeDesktopItem,
+  jdk8,
+  jdk17,
+  jdk21,
+  jdk25,
+  libGL,
+  vulkan-loader,
+  glfw3-minecraft,
+  openal,
+  alsa-lib,
+  libpulseaudio,
+  pipewire,
+  udev,
+  libx11,
+  libxcursor,
+  libxext,
+  libxrandr,
+  libxxf86vm,
+  xrandr,
+  pciutils,
 }:
 
 let
-  pname = "pineconemc"; 
-  version = "11.1.1"; # UPDATE_VERSION
+  pname = "pineconemc";
+  version = "11.1.1";
 
   sources = {
     x86_64-linux = {
@@ -42,9 +43,15 @@ let
   };
 
   system = stdenv.hostPlatform.system;
-  selectedSource = sources.${system} or (throw "Архитектура ${system} не поддерживается этим пакетом");
+  selectedSource =
+    sources.${system} or (throw "Архитектура ${system} не поддерживается этим пакетом");
 
-  jdks = [ jdk25 jdk21 jdk17 jdk8 ];
+  jdks = [
+    jdk25
+    jdk21
+    jdk17
+    jdk8
+  ];
 
   appimageContents = appimageTools.extractType2 {
     inherit pname version;
@@ -57,7 +64,7 @@ let
   desktopItem = makeDesktopItem {
     name = pname;
     exec = pname;
-    icon = pname; # Указываем имя иконки (согласуется с именем файла ниже, без расширения)
+    icon = pname;
     comment = "PineconeMC";
     desktopName = "PineconeMC";
     categories = [ "Game" ];
@@ -69,23 +76,24 @@ let
       url = selectedSource.url;
       sha256 = selectedSource.hash;
     };
-    extraPkgs = pkgs: with pkgs; [
-      libGL
-      vulkan-loader
-      glfw3-minecraft
-      openal
-      udev
-      pciutils
-      alsa-lib
-      libpulseaudio
-      pipewire
-      libx11
-      libxcursor
-      libxext
-      libxrandr
-      libxxf86vm
-      xrandr
-    ];
+    extraPkgs =
+      pkgs: with pkgs; [
+        libGL
+        vulkan-loader
+        glfw3-minecraft
+        openal
+        udev
+        pciutils
+        alsa-lib
+        libpulseaudio
+        pipewire
+        libx11
+        libxcursor
+        libxext
+        libxrandr
+        libxxf86vm
+        xrandr
+      ];
   };
 in
 symlinkJoin {
@@ -102,13 +110,16 @@ symlinkJoin {
     cp ${desktopItem}/share/applications/* $out/share/applications/
 
     mkdir -p $out/share/icons/hicolor/256x256/apps
-    
+
     cp -L ${appimageContents}/.DirIcon $out/share/icons/hicolor/256x256/apps/${pname}.png
   '';
 
   meta = with lib; {
     description = "A fork of Prism Launcher with integrated Ely.by account support.";
-    platforms = [ "x86_64-linux" "aarch64-linux" ];
+    platforms = [
+      "x86_64-linux"
+      "aarch64-linux"
+    ];
     mainProgram = pname;
   };
 }
