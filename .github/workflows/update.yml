@@ -24,11 +24,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # === НАСТРОЙКА ===
-          UPSTREAM_REPO="ElyPrismLauncher/Launcher"
-          # =================
-
-          echo "Проверяем последний релиз в $UPSTREAM_REPO..."
           
           LATEST_VERSION=$(gh release view --repo $UPSTREAM_REPO --json tagName --template '{{.tagName}}')
           
@@ -39,12 +34,10 @@ jobs:
             exit 0
           fi
 
-          echo "Найдена новая версия: $LATEST_VERSION (у нас: $CURRENT_VERSION)"
 
           NEW_URL_X86="https://github.com/$UPSTREAM_REPO/releases/download/$LATEST_VERSION/PineconeMC-Linux-x86_64.AppImage"
           NEW_URL_ARM="https://github.com/$UPSTREAM_REPO/releases/download/$LATEST_VERSION/PineconeMC-Linux-aarch64.AppImage"
 
-          echo "Скачиваем файлы и вычисляем новые SHA256-хеши через Nix..."
           
           STORE_PATH_X86=$(nix-prefetch-url "$NEW_URL_X86" --type sha256)
           NEW_HASH_X86=$(nix hash to-sri --type sha256 "$STORE_PATH_X86")
@@ -52,16 +45,14 @@ jobs:
           STORE_PATH_ARM=$(nix-prefetch-url "$NEW_URL_ARM" --type sha256)
           NEW_HASH_ARM=$(nix hash to-sri --type sha256 "$STORE_PATH_ARM")
 
-          echo "Обновляем package.nix..."
           sed -i "s|version = \".*\"; # UPDATE_VERSION|version = \"$LATEST_VERSION\"; # UPDATE_VERSION|" package.nix
           sed -i "s|url = \".*\"; # UPDATE_URL_X86|url = \"$NEW_URL_X86\"; # UPDATE_URL_X86|" package.nix
           sed -i "s|hash = \".*\"; # UPDATE_HASH_X86|hash = \"$NEW_HASH_X86\"; # UPDATE_HASH_X86|" package.nix
           sed -i "s|url = \".*\"; # UPDATE_URL_ARM|url = \"$NEW_URL_ARM\"; # UPDATE_URL_ARM|" package.nix
           sed -i "s|hash = \".*\"; # UPDATE_HASH_ARM|hash = \"$NEW_HASH_ARM\"; # UPDATE_HASH_ARM|" package.nix
 
-          echo "Коммитим изменения в репозиторий..."
           git config user.name "github-actions[bot]"
           git config user.email "41851857+github-actions[bot]@users.noreply.github.com"
           git add package.nix
-          git commit -m "chore: добавить setup-node@v4 (Node.js 24) в workflow"
+          git commit -m "Auto-update to $LATEST_VERSION"
           git push
